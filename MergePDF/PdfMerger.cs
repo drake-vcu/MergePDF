@@ -59,8 +59,7 @@ namespace MergePDF
                 {
                     foreach (var document in Documents)
                     {
-                        document.Replace(@"\", "/");
-                        PdfDocument importPdf = PdfReader.Open(document, PdfDocumentOpenMode.Import);
+                        PdfDocument importPdf = PdfReader.Open(document.Replace(@"\", "/"), PdfDocumentOpenMode.Import);
                         CopyPages(importPdf, outPdf);
                     }
                     var outputLocation = OutputFile.Replace(@"\", "/");
