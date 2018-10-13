@@ -20,10 +20,7 @@ namespace MergePDF
         private List<TextBox> Textboxes { get; set; }
         private List<OpenFileDialog> FileDialogs { get; set; }
 
-        private List<string> Documents { get; set; }
-
-        // Create a document for the merged result.
-        private PdfDocument outDocument { get; set; }
+        private PdfMerger _pdfMerger;
 
         private OpenFileDialog openFileDialog { get; set; }
         private SaveFileDialog saveFileDialog { get; set; }
@@ -35,7 +32,7 @@ namespace MergePDF
             Buttons = new List<Button>();
             Textboxes = new List<TextBox>();
             FileDialogs = new List<OpenFileDialog>();
-            Documents = new List<string>();
+            _pdfMerger = new PdfMerger();
             CreateOpenFileDialog();
             CreateSaveFileDialog();
         }
@@ -51,33 +48,11 @@ namespace MergePDF
             ActiveControl = null;
         }
 
-        private void CopyPages(PdfDocument from, PdfDocument to)
-        {
-            for (int i = 0; i < from.PageCount; i++)
-            {
-                to.AddPage(from.Pages[i]);
-            }
-        }
-
         private void btnMergePdf_Click(object sender, EventArgs e)
         {
-
-            outDocument = new PdfDocument();
-
             try
             {
-                using (PdfDocument outPdf = new PdfDocument())
-                {
-                    foreach (var document in Documents)
-                    {
-                        document.Replace(@"\", "/");
-                        PdfDocument importPdf = PdfReader.Open(document, PdfDocumentOpenMode.Import);
-                        CopyPages(importPdf, outPdf);
-                    }
-                    var outputLocation = saveFileDialog.FileName.Replace(@"\", "/");
-                    outPdf.Save(outputLocation);
-                }
-
+                _pdfMerger.MergeFiles(saveFileDialog.FileName);
                 richConsole.AppendText(string.Format("Merged successfully!\n"));
             }catch(Exception ex)
             {
@@ -126,7 +101,7 @@ namespace MergePDF
             Buttons.Clear();
             Labels.Clear();
             Textboxes.Clear();
-            Documents.Clear();
+            _pdfMerger.Clear();
         }
 
         private void CreateOpenFileDialog()
@@ -199,7 +174,7 @@ namespace MergePDF
                     try
                     {
                         string fileName = dialog.FileName;
-                        Documents.Add(fileName);
+                        _pdfMerger.AddFile(fileName);
                         Textboxes[increment].Text = fileName;
                     }
                     catch(System.IO.IOException)
