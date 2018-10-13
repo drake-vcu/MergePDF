@@ -25,6 +25,8 @@ namespace MergePDF
         private OpenFileDialog openFileDialog { get; set; }
         private SaveFileDialog saveFileDialog { get; set; }
 
+        private int NumberOfFiles { get; set; }
+
         public Form1()
         {
             InitializeComponent();
@@ -52,6 +54,10 @@ namespace MergePDF
         {
             try
             {
+                _pdfMerger.Clear();
+                foreach (var box in Textboxes)
+                    _pdfMerger.AddFile(box.Text);
+
                 _pdfMerger.MergeFiles(saveFileDialog.FileName);
                 richConsole.AppendText(string.Format("Merged successfully!\n"));
             }catch(Exception ex)
@@ -72,30 +78,21 @@ namespace MergePDF
             richConsole.Clear();
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboBox1.SelectedIndex == -1)
-                return;
-
-            btnMergePdf.Enabled = true;
-            ShowMergeRows(Int32.Parse(comboBox1.Items[comboBox1.SelectedIndex].ToString()));
-        }
-
         private void RemoveMergeRows()
         {
             foreach(var button in Buttons)
             {
-                Controls.Remove(button);
+                flpFiles.Controls.Remove(button);
             }
 
             foreach(var label in Labels)
             {
-                Controls.Remove(label);
+                flpFiles.Controls.Remove(label);
             }
 
             foreach(var txtBox in Textboxes)
             {
-                Controls.Remove(txtBox);
+                flpFiles.Controls.Remove(txtBox);
             }
 
             Buttons.Clear();
@@ -137,83 +134,6 @@ namespace MergePDF
             return textBox;
         }
 
-        private Button CreateSaveButton(int yOffset)
-        {
-            Button button = new Button();
-            button.Location = new Point(10, yOffset);
-            button.Text = string.Format("Save file at");
-            button.Visible = true;
-
-            button.Click += (sender, e) =>
-            {
-                saveFileDialog.ShowDialog();
-                if (saveFileDialog.FileName != "")
-                {
-                    Textboxes.Last().Text = saveFileDialog.FileName;
-                    richConsole.AppendText(string.Format("Output location set: {0}\n", saveFileDialog.FileName));
-                }
-            };
-
-            Buttons.Add(button);
-
-            return button;
-        }
-
-        private Button CreateOpenButton(int yOffset, int increment)
-        {
-            Button button = new Button();
-            button.Location = new Point(10, yOffset);
-            button.Text = string.Format("Browse file {0}", increment + 1);
-            button.Visible = true;
-
-            button.Click += (sender, e) =>
-            {
-                var dialog = openFileDialog;
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        string fileName = dialog.FileName;
-                        _pdfMerger.AddFile(fileName);
-                        Textboxes[increment].Text = fileName;
-                    }
-                    catch(System.IO.IOException)
-                    {
-                        MessageBox.Show("Uh-oh, something went wrong. Please try closing all the PDF files you want to import", "Import error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        richConsole.AppendText("Something went wrong, please try closing all the PDF files you want to import first.\n");
-                    }
-                   
-                }
-            };
-
-            Buttons.Add(button);
-
-            return button;
-        }
-
-        private void ShowMergeRows(int totalRows)
-        {
-            RemoveMergeRows();
-            int startY = 100;
-
-            for (int i = 0; i < totalRows; i++)
-            {
-                var textBox = CreateTextbox(startY);
-                Controls.Add(textBox);
-
-                var button = CreateOpenButton(startY, i);
-                Controls.Add(button);
-
-                startY += 45;
-            }
-
-            var saveTextBox = CreateTextbox(startY);
-            Controls.Add(saveTextBox);
-
-            var saveButton = CreateSaveButton(startY);
-            Controls.Add(saveButton);
-        }
-
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -221,10 +141,44 @@ namespace MergePDF
 
         private void btnClearAll_Click(object sender, EventArgs e)
         {
+            lblFileCount.Text = (NumberOfFiles = 0).ToString();
             RemoveMergeRows();
             richConsole.Clear();
-            comboBox1.SelectedIndex = -1;
+            txtSaveFile.Text = string.Empty;
             btnMergePdf.Enabled = false;
+        }
+
+        
+
+        private void btnAddFile_Click(object sender, EventArgs e)
+        {
+            var dialog = openFileDialog;
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    lblFileCount.Text = (++NumberOfFiles).ToString();
+                    var box = CreateTextbox(45 * NumberOfFiles);
+                    box.Text = dialog.FileName;
+                    flpFiles.Controls.Add(box);
+                }
+                catch (System.IO.IOException)
+                {
+                    MessageBox.Show("Uh-oh, something went wrong. Please try closing all the PDF files you want to import", "Import error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    richConsole.AppendText("Something went wrong, please try closing all the PDF files you want to import first.\n");
+                }
+            }
+            btnMergePdf.Enabled = NumberOfFiles > 1;
+        }
+
+        private void btnSaveFile_Click(object sender, EventArgs e)
+        {
+            saveFileDialog.ShowDialog();
+            if (saveFileDialog.FileName != "")
+            {
+                txtSaveFile.Text = saveFileDialog.FileName;
+                richConsole.AppendText(string.Format("Output location set: {0}\n", saveFileDialog.FileName));
+            }
         }
     }
 }
