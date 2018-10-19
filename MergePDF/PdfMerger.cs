@@ -49,9 +49,11 @@ namespace MergePDF
                 if (outputFile != null)
                     OutputFile = outputFile;
                 if (Documents?.Count < 2)
-                    throw new Exception("Two or more files are required to merge!");
+                    throw new ArgumentException("Two or more files are required to merge!");
+                if (OutputFile == null)
+                    throw new ArgumentNullException("Output file not set!");
                 if ((OutputFile ?? string.Empty) == string.Empty)
-                    throw new Exception("Output file not set!");
+                    throw new ArgumentException("Output file not set!");
 
                 var outDocument = new PdfDocument();
 

@@ -16,7 +16,7 @@ namespace MergePDFTests
         public void Merge_with_no_files_Fail()
         {
             PdfMerger pdfMerger = new PdfMerger();
-            Assert.ThrowsException<Exception>(() => pdfMerger.MergeFiles());
+            Assert.ThrowsException<ArgumentException>(() => pdfMerger.MergeFiles());
         }
 
         [TestMethod]
@@ -28,7 +28,7 @@ namespace MergePDFTests
             if (System.IO.File.Exists(PDF_OUT))
                 System.IO.File.Delete(PDF_OUT);
 
-            Assert.ThrowsException<Exception>(() => pdfMerger.MergeFiles(PDF_OUT));
+            Assert.ThrowsException<ArgumentException>(() => pdfMerger.MergeFiles(PDF_OUT));
         }
 
         [TestMethod]
@@ -41,7 +41,7 @@ namespace MergePDFTests
             if (System.IO.File.Exists(PDF_OUT))
                 System.IO.File.Delete(PDF_OUT);
 
-            Assert.ThrowsException<Exception>(() => pdfMerger.MergeFiles());
+            Assert.ThrowsException<ArgumentException>(() => pdfMerger.MergeFiles());
         }
 
         [TestMethod]
