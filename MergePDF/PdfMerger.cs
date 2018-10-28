@@ -44,33 +44,26 @@ namespace MergePDF
         /// <param name="outputFile">optionally set outputfile here</param>
         public void MergeFiles(string outputFile = null)
         {
-            try
+            if (outputFile != null)
+                OutputFile = outputFile;
+            if (Documents?.Count < 2)
+                throw new ArgumentException("Two or more files are required to merge!");
+            if (OutputFile == null)
+                throw new ArgumentNullException("Output file not set!");
+            if ((OutputFile ?? string.Empty) == string.Empty)
+                throw new ArgumentException("Output file not set!");
+
+            var outDocument = new PdfDocument();
+
+            using (PdfDocument outPdf = new PdfDocument())
             {
-                if (outputFile != null)
-                    OutputFile = outputFile;
-                if (Documents?.Count < 2)
-                    throw new ArgumentException("Two or more files are required to merge!");
-                if (OutputFile == null)
-                    throw new ArgumentNullException("Output file not set!");
-                if ((OutputFile ?? string.Empty) == string.Empty)
-                    throw new ArgumentException("Output file not set!");
-
-                var outDocument = new PdfDocument();
-
-                using (PdfDocument outPdf = new PdfDocument())
+                foreach (var document in Documents)
                 {
-                    foreach (var document in Documents)
-                    {
-                        PdfDocument importPdf = PdfReader.Open(document.Replace(@"\", "/"), PdfDocumentOpenMode.Import);
-                        CopyPages(importPdf, outPdf);
-                    }
-                    var outputLocation = OutputFile.Replace(@"\", "/");
-                    outPdf.Save(outputLocation);
+                    PdfDocument importPdf = PdfReader.Open(document.Replace(@"\", "/"), PdfDocumentOpenMode.Import);
+                    CopyPages(importPdf, outPdf);
                 }
-            }
-            catch (Exception)
-            {
-                throw;
+                var outputLocation = OutputFile.Replace(@"\", "/");
+                outPdf.Save(outputLocation);
             }
         }
 
